@@ -69,12 +69,11 @@ function [dopasowane_punkty_na_zdjeciu_wczytanym, dopasowane_punkty_na_zdjeciu_b
     back_200_validPts = dlmread('D:\PWR\Obrazki\Projekt\Baza banknotów\200_BASE_BACK_POINTS.csv');
 
     %% Wykrycie punktów charakterystycznych na zdjêciu wczytanym
-    image = imread(img_location);
+    image = imread('D:\PWR\Obrazki\Projekt\Banknoty\randomv4.jpg');
     I = rgb2gray(image);
 
     % Detect features
     I_pts = detectSURFFeatures(I);
-    %I_pts_top_500 = I_pts.selectStrongest(500);
     [I_features, I_validPts] = extractFeatures(I, I_pts);
     figure(1)
     imshow(image);
@@ -85,16 +84,19 @@ function [dopasowane_punkty_na_zdjeciu_wczytanym, dopasowane_punkty_na_zdjeciu_b
     % W tej sekcji dokonujemy porównania znalezionych punktów
     % charakterystycznych na wczytanym obrazie, z tymi znalezionymi na obrazie
     % bazowym.
-    base_features_front={front_10_features,front_20_features,front_50_features,front_100_features,front_200_features,back_10_features,back_20_features,back_50_features,back_100_features,back_200_features};
-    base_valid_points_front = {front_10_validPts, front_20_validPts, front_50_validPts, front_100_validPts, front_200_validPts,back_10_validPts, back_20_validPts, back_50_validPts, back_100_validPts, back_200_validPts};
+    base_features={front_10_features,front_20_features,front_50_features,front_100_features,...
+        front_200_features,back_10_features,back_20_features,back_50_features,back_100_features,back_200_features};
+    base_valid_points = {front_10_validPts, front_20_validPts, front_50_validPts, front_100_validPts,...
+        front_200_validPts,back_10_validPts, back_20_validPts, back_50_validPts, back_100_validPts, back_200_validPts};
 
-    [banknot, indeksy_par] = find_best_match(base_features_front, I_features);
+    [banknot, indeksy_par] = find_best_match(base_features, I_features);
 
-    temp_valid_points = cell2mat(base_valid_points_front(banknot));
+    temp_valid_points = cell2mat(base_valid_points(banknot));
     pasujace_punkty_na_zdjeciu_bazowym = temp_valid_points(indeksy_par(:,1),:);
     pasujace_punkty_na_zdjeciu_wczytanym = double(I_validPts(indeksy_par(:,2)).Location);
     figure(2)
-    showMatchedFeatures(image, cell2mat(ref_images(banknot)), pasujace_punkty_na_zdjeciu_wczytanym, pasujace_punkty_na_zdjeciu_bazowym, 'montage');
+    showMatchedFeatures(image, cell2mat(ref_images(banknot)),...
+    pasujace_punkty_na_zdjeciu_wczytanym, pasujace_punkty_na_zdjeciu_bazowym, 'montage');
     title('Wsztskie pary punktów charakterystycznych');
     legend('Pasujace punkty na zdjêciu bazowym','Pasujace punkty na zdjêciu wczytanym');
 
@@ -115,6 +117,12 @@ function [dopasowane_punkty_na_zdjeciu_wczytanym, dopasowane_punkty_na_zdjeciu_b
     [tform,dopasowane_punkty_na_zdjeciu_wczytanym,dopasowane_punkty_na_zdjeciu_bazowym] = ...
     estimateGeometricTransform(pasujace_punkty_na_zdjeciu_wczytanym,pasujace_punkty_na_zdjeciu_bazowym, ...
     'similarity');
+
+    figure(4)
+    showMatchedFeatures(image, cell2mat(ref_images(banknot)), dopasowane_punkty_na_zdjeciu_wczytanym, ...
+    dopasowane_punkty_na_zdjeciu_bazowym, 'montage');
+    title('Pary punktów charakterystycznych');
+    legend('Pasujace punkty na zdjêciu bazowym','Pasujace punkty na zdjêciu wczytanym');
 
     %% Transformacja rogów obiektu
     % W tej sekcji okreœlane s¹ rogi banknotu a nastêpnie na obraz nak³adany
